@@ -38,8 +38,11 @@ const emptyRule = {
     minAccountAgeDays: 14,
     requireFlair: '',
     keywords: '',
+    exemptKeywords: '',
+    regexes: '',
     domains: '',
     externalLinkRequired: true,
+    maxNonLinkTextLength: 160,
   },
   repairMessage: 'Your post may need more context before moderators can approve it.',
 };
@@ -125,8 +128,11 @@ function App() {
         minAccountAgeDays: Number(form.conditions.minAccountAgeDays || 0),
         requireFlair: clean(form.conditions.requireFlair),
         keywords: splitList(form.conditions.keywords),
+        exemptKeywords: splitList(form.conditions.exemptKeywords),
+        regexes: splitList(form.conditions.regexes),
         domains: splitList(form.conditions.domains),
         externalLinkRequired: form.conditions.externalLinkRequired,
+        maxNonLinkTextLength: Number(form.conditions.maxNonLinkTextLength || 0) || undefined,
       },
       repairMessage: clean(form.repairMessage),
     };
@@ -342,7 +348,10 @@ function App() {
                 <label>Required flair<input value={form.conditions.requireFlair} onChange={(event) => setForm({ ...form, conditions: { ...form.conditions, requireFlair: event.target.value } })} /></label>
               </div>
               <label>Keywords<input value={form.conditions.keywords} onChange={(event) => setForm({ ...form, conditions: { ...form.conditions, keywords: event.target.value } })} placeholder="promo, affiliate, giveaway" /></label>
+              <label>Exempt terms<input value={form.conditions.exemptKeywords} onChange={(event) => setForm({ ...form, conditions: { ...form.conditions, exemptKeywords: event.target.value } })} placeholder="source:, research, open source" /></label>
+              <label>Regex patterns<input value={form.conditions.regexes} onChange={(event) => setForm({ ...form, conditions: { ...form.conditions, regexes: event.target.value } })} placeholder="\\b(buy|subscribe|discount)\\b" /></label>
               <label>Domains<input value={form.conditions.domains} onChange={(event) => setForm({ ...form, conditions: { ...form.conditions, domains: event.target.value } })} placeholder="bit.ly, gumroad.com" /></label>
+              <label>Max non-link context<input type="number" min="0" value={form.conditions.maxNonLinkTextLength} onChange={(event) => setForm({ ...form, conditions: { ...form.conditions, maxNonLinkTextLength: Number(event.target.value) } })} /></label>
               <label className="check"><input type="checkbox" checked={form.conditions.externalLinkRequired} onChange={(event) => setForm({ ...form, conditions: { ...form.conditions, externalLinkRequired: event.target.checked } })} /> Require external link</label>
               <button className="primary" type="submit"><ShieldCheck size={16} /> Save Custom Rule</button>
             </form>

@@ -20,7 +20,7 @@ Moderators can start a private rule trial directly from Reddit:
 ModTrials then:
 
 - Reads the selected Reddit post or comment.
-- Creates a shadow rule trial.
+- Creates a shadow rule trial from deterministic moderation recipes.
 - Shows the counterfactual outcome: what would have happened if the rule were live.
 - Records why the item matched.
 - Sends the moderator a private DM result.
@@ -71,6 +71,8 @@ ModTrials is deterministic and privacy-preserving.
 - Private results are sent only to moderators.
 - Deleted Reddit items trigger cleanup of related trial evidence.
 - Redis keys are scoped by subreddit, so one community cannot read or mutate another community's ModTrials rules or evidence.
+
+Rules can test keyword sets, regex-style text patterns, exemption terms, external links, domains, link-heavy posts with little context, short text, flair, and account-age style checks.
 
 Stored evidence keeps only the minimum needed for moderation review: rule ID, Reddit thing ID, match reasons, labels, timestamps, and launch metrics.
 
@@ -150,7 +152,7 @@ Current public test install:
 
 ```text
 r/ASIfacts
-modtrials v0.0.17
+modtrials v0.0.18
 ```
 
 ## App Listing

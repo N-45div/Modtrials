@@ -61,4 +61,51 @@ describe('evaluateRule', () => {
     expect(result.matched).toBe(true);
     expect(result.reasons.map((reason) => reason.code)).toEqual(['short_text', 'external_link']);
   });
+
+  it('supports regex patterns and exemption terms for richer deterministic policies', () => {
+    const result = evaluateRule(
+      {
+        ...baseRule,
+        conditions: {
+          regexes: ['\\b(buy|subscribe|discount)\\b'],
+          exemptKeywords: ['source:'],
+          externalLinkRequired: true,
+        },
+      },
+      { ...baseItem, title: 'Limited discount', body: 'Subscribe today https://example.com' },
+    );
+
+    expect(result.matched).toBe(true);
+    expect(result.reasons.map((reason) => reason.code)).toEqual(['regex', 'external_link']);
+
+    const exempt = evaluateRule(
+      {
+        ...baseRule,
+        conditions: {
+          regexes: ['\\b(discount)\\b'],
+          exemptKeywords: ['source:'],
+          externalLinkRequired: true,
+        },
+      },
+      { ...baseItem, title: 'Source: discount report', body: 'Research link https://example.com' },
+    );
+
+    expect(exempt.matched).toBe(false);
+  });
+
+  it('detects link-heavy posts with little non-link context', () => {
+    const result = evaluateRule(
+      {
+        ...baseRule,
+        conditions: {
+          externalLinkRequired: true,
+          maxNonLinkTextLength: 20,
+        },
+      },
+      { ...baseItem, title: '', body: 'check this https://example.com' },
+    );
+
+    expect(result.matched).toBe(true);
+    expect(result.reasons.map((reason) => reason.code)).toEqual(['thin_context', 'external_link']);
+  });
 });

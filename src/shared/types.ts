@@ -19,9 +19,12 @@ export type TrialRule = {
     requireFlair?: string;
     excludeFlair?: string;
     keywords?: string[];
+    exemptKeywords?: string[];
+    regexes?: string[];
     domains?: string[];
     externalLinkRequired?: boolean;
     maxTextLength?: number;
+    maxNonLinkTextLength?: number;
   };
   repairMessage?: string;
 };

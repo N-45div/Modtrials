@@ -16,9 +16,12 @@ export const ruleSchema = z.object({
     requireFlair: z.string().max(80).optional(),
     excludeFlair: z.string().max(80).optional(),
     keywords: z.array(z.string().min(1).max(80)).max(30).optional(),
+    exemptKeywords: z.array(z.string().min(1).max(80)).max(30).optional(),
+    regexes: z.array(z.string().min(1).max(180)).max(12).optional(),
     domains: z.array(z.string().min(1).max(120)).max(30).optional(),
     externalLinkRequired: z.boolean().optional(),
     maxTextLength: z.number().int().min(1).max(5000).optional(),
+    maxNonLinkTextLength: z.number().int().min(1).max(5000).optional(),
   }),
   repairMessage: z.string().max(800).optional(),
 });

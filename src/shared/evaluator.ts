@@ -11,6 +11,12 @@ export function evaluateRule(rule: TrialRule, item: ContentItem): EvaluationResu
   const conditions = rule.conditions;
   const searchable = `${item.title ?? ''}\n${item.body}`.toLowerCase();
   const visibleText = `${item.title ?? ''}\n${item.body}`.trim();
+  const urls = extractUrls(`${item.url ?? ''}\n${item.body}`);
+
+  if (conditions.exemptKeywords?.length) {
+    const matchedExemptions = conditions.exemptKeywords.filter((keyword) => searchable.includes(keyword.toLowerCase()));
+    if (matchedExemptions.length > 0) return { matched: false, reasons: [] };
+  }
 
   if (conditions.minAccountAgeDays !== undefined) {
     const age = accountAgeDays(item.authorCreatedAt, item.createdAt);
@@ -50,6 +56,16 @@ export function evaluateRule(rule: TrialRule, item: ContentItem): EvaluationResu
     });
   }
 
+  if (conditions.regexes?.length) {
+    const matched = matchRegexes(conditions.regexes, visibleText);
+    if (matched.length === 0) return { matched: false, reasons: [] };
+    reasons.push({
+      code: 'regex',
+      label: 'Matched text pattern',
+      detail: matched.join(', '),
+    });
+  }
+
   if (conditions.maxTextLength !== undefined) {
     if (visibleText.length > conditions.maxTextLength) return { matched: false, reasons: [] };
     reasons.push({
@@ -59,7 +75,15 @@ export function evaluateRule(rule: TrialRule, item: ContentItem): EvaluationResu
     });
   }
 
-  const urls = extractUrls(`${item.url ?? ''}\n${item.body}`);
+  if (conditions.maxNonLinkTextLength !== undefined) {
+    const nonLinkTextLength = removeUrls(visibleText).length;
+    if (nonLinkTextLength > conditions.maxNonLinkTextLength) return { matched: false, reasons: [] };
+    reasons.push({
+      code: 'thin_context',
+      label: 'Little non-link context',
+      detail: `${nonLinkTextLength} <= ${conditions.maxNonLinkTextLength} non-link chars`,
+    });
+  }
 
   if (conditions.externalLinkRequired) {
     if (urls.length === 0) return { matched: false, reasons: [] };
@@ -106,6 +130,20 @@ export function accountAgeDays(authorCreatedAt: string | undefined, contentCreat
   const contentTime = Date.parse(contentCreatedAt);
   if (!Number.isFinite(authorTime) || !Number.isFinite(contentTime)) return null;
   return Math.max(0, Math.floor((contentTime - authorTime) / 86_400_000));
+}
+
+function matchRegexes(patterns: string[], value: string): string[] {
+  return patterns.filter((pattern) => {
+    try {
+      return new RegExp(pattern, 'i').test(value);
+    } catch {
+      return false;
+    }
+  });
+}
+
+function removeUrls(value: string): string {
+  return value.replace(URL_PATTERN, '').replace(/\s+/g, ' ').trim();
 }
 
 function domainMatches(domain: string, expected: string): boolean {

@@ -3,6 +3,7 @@ import { extractUrls, domainFromUrl } from '../shared/evaluator';
 
 const PROMO_KEYWORDS = ['launch', 'promo', 'buy', 'discount', 'affiliate', 'deal', 'sale', 'subscribe'];
 const RISKY_DOMAINS = ['bit.ly', 'tinyurl.com', 't.co', 'gumroad.com', 'linktr.ee', 'beacons.ai'];
+const GOOD_FAITH_EXEMPTIONS = ['source:', 'sources:', 'research', 'case study', 'open source', 'disclosure'];
 
 export function buildBaselineRules(existingRules: TrialRule[], now = new Date().toISOString()): TrialRule[] {
   const existingNames = new Set(existingRules.map((rule) => rule.name));
@@ -17,6 +18,7 @@ export function buildBaselineRules(existingRules: TrialRule[], now = new Date().
       enabled: true,
       conditions: {
         keywords: PROMO_KEYWORDS,
+        exemptKeywords: GOOD_FAITH_EXEMPTIONS,
         externalLinkRequired: true,
       },
     },
@@ -31,6 +33,8 @@ export function buildBaselineRules(existingRules: TrialRule[], now = new Date().
       conditions: {
         externalLinkRequired: true,
         maxTextLength: 180,
+        maxNonLinkTextLength: 120,
+        exemptKeywords: GOOD_FAITH_EXEMPTIONS,
       },
     },
     {
@@ -43,6 +47,20 @@ export function buildBaselineRules(existingRules: TrialRule[], now = new Date().
       enabled: true,
       conditions: {
         domains: RISKY_DOMAINS,
+      },
+    },
+    {
+      name: 'Giveaway or purchase intent',
+      description: 'Watches for common commercial phrasing without using AI.',
+      source: 'baseline',
+      target: 'post',
+      mode: 'shadow',
+      action: 'hold',
+      enabled: true,
+      conditions: {
+        regexes: ['\\b(buy|subscribe|discount|limited time|early access|affiliate)\\b'],
+        externalLinkRequired: true,
+        exemptKeywords: GOOD_FAITH_EXEMPTIONS,
       },
     },
   ];
@@ -76,9 +94,11 @@ export function buildInlineRuleFromContent(content: ContentItem, now = new Date(
     updatedAt: now,
     conditions: {
       keywords: matchedKeywords.length > 0 ? matchedKeywords : undefined,
+      exemptKeywords: GOOD_FAITH_EXEMPTIONS,
       domains: matchedKeywords.length === 0 && domains.length > 0 ? domains.slice(0, 3) : undefined,
       externalLinkRequired: hasExternalLink || undefined,
       maxTextLength: text.trim().length <= 220 ? 240 : undefined,
+      maxNonLinkTextLength: hasExternalLink && text.trim().length <= 260 ? 160 : undefined,
     },
   };
 }
