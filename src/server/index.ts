@@ -354,11 +354,11 @@ async function requireContextModerator(responseType: 'json' | 'toast'): Promise<
   return Response.json({ error: 'Moderator access required' }, { status: 403 });
 }
 
-type PrivateDelivery = 'dm' | 'mod_discussion' | 'failed';
+type PrivateDelivery = 'dm' | 'modmail' | 'failed';
 
 async function deliverPrivateResult(subject: string, text: string): Promise<PrivateDelivery> {
   const username = context.username;
-  if (!username) return deliverModDiscussion(subject, text);
+  if (!username) return deliverModmail(subject, text);
   return deliverPrivateMessage(username, subject, text);
 }
 
@@ -368,30 +368,30 @@ async function deliverPrivateMessage(username: string, subject: string, text: st
     return 'dm';
   } catch (error) {
     console.warn('[ModTrials] Private message failed', error);
-    return deliverModDiscussion(subject, text);
+    return deliverModmail(subject, text);
   }
 }
 
-async function deliverModDiscussion(subject: string, text: string): Promise<PrivateDelivery> {
+async function deliverModmail(subject: string, text: string): Promise<PrivateDelivery> {
   const subredditId = context.subredditId;
   if (!subredditId) return 'failed';
 
   try {
-    await reddit.modMail.createModDiscussionConversation({
+    await reddit.modMail.createModInboxConversation({
       subredditId: subredditId as `t5_${string}`,
       subject,
       bodyMarkdown: text,
     });
-    return 'mod_discussion';
+    return 'modmail';
   } catch (error) {
-    console.warn('[ModTrials] Mod discussion delivery failed', error);
+    console.warn('[ModTrials] Modmail delivery failed', error);
     return 'failed';
   }
 }
 
 function deliveryToast(delivery: PrivateDelivery, fallbackAction: string): string {
   if (delivery === 'dm') return 'Private ModTrials result sent by DM.';
-  if (delivery === 'mod_discussion') return 'DM was blocked, so ModTrials sent the result to Mod Discussions.';
+  if (delivery === 'modmail') return 'DM was blocked, so ModTrials sent the result to Modmail Inbox.';
   return `${fallbackAction}, but private delivery failed. Try "ModTrials: trial this" and review it in the dashboard.`;
 }
 
