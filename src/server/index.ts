@@ -202,8 +202,8 @@ app.post('/internal/menu/trial-private', async (c) => {
   if (!content) return toast('Could not read that Reddit item.', 'neutral');
 
   const { rule, events } = await startPrivateTrial(content);
-  const sent = await sendPrivateResult('ModTrials private trial', buildTrialDm(content, rule, events));
-  return toast(sent ? 'Private ModTrials result sent by DM.' : 'Started private trial, but DM could not be sent.', sent ? 'success' : 'neutral');
+  const delivery = await deliverPrivateResult('ModTrials private trial', buildTrialDm(content, rule, events));
+  return toast(deliveryToast(delivery, 'Started private trial'), delivery === 'failed' ? 'neutral' : 'success');
 });
 
 app.post('/internal/menu/why-private', async (c) => {
@@ -212,13 +212,13 @@ app.post('/internal/menu/why-private', async (c) => {
   if (!content) return toast('Could not read that Reddit item.', 'neutral');
 
   const [event] = await listEventsByContent(content.id);
-  const sent = await sendPrivateResult('ModTrials private why', buildWhyDm(content, event ?? null));
-  return toast(sent ? 'Private ModTrials explanation sent by DM.' : 'Could not send private ModTrials explanation.', sent ? 'success' : 'neutral');
+  const delivery = await deliverPrivateResult('ModTrials private why', buildWhyDm(content, event ?? null));
+  return toast(deliveryToast(delivery, 'Prepared private ModTrials explanation'), delivery === 'failed' ? 'neutral' : 'success');
 });
 
 app.post('/internal/menu/report-private', async () => {
-  const sent = await sendPrivateResult('ModTrials private report', buildReportDm(await listRules(), await listEvents(undefined, 250)));
-  return toast(sent ? 'Private ModTrials report sent by DM.' : 'Could not send private ModTrials report.', sent ? 'success' : 'neutral');
+  const delivery = await deliverPrivateResult('ModTrials private report', buildReportDm(await listRules(), await listEvents(undefined, 250)));
+  return toast(deliveryToast(delivery, 'Prepared private ModTrials report'), delivery === 'failed' ? 'neutral' : 'success');
 });
 
 app.post('/internal/menu/good-catch', async (c) => {
@@ -296,12 +296,12 @@ async function processBotCommand(payload: unknown): Promise<{ handled: boolean; 
 
   if (command.action === 'trial') {
     const { rule, events } = await startPrivateTrial(parent);
-    await sendPrivateMessage(authorName, 'ModTrials private trial', buildTrialDm(parent, rule, events));
+    await deliverPrivateMessage(authorName, 'ModTrials private trial', buildTrialDm(parent, rule, events));
   } else if (command.action === 'why') {
     const [event] = await listEventsByContent(parent.id);
-    await sendPrivateMessage(authorName, 'ModTrials private why', buildWhyDm(parent, event ?? null));
+    await deliverPrivateMessage(authorName, 'ModTrials private why', buildWhyDm(parent, event ?? null));
   } else {
-    await sendPrivateMessage(authorName, 'ModTrials private report', buildReportDm(await listRules(), await listEvents(undefined, 250)));
+    await deliverPrivateMessage(authorName, 'ModTrials private report', buildReportDm(await listRules(), await listEvents(undefined, 250)));
   }
 
   await removeCommandComment(commandComment.id);
@@ -354,20 +354,45 @@ async function requireContextModerator(responseType: 'json' | 'toast'): Promise<
   return Response.json({ error: 'Moderator access required' }, { status: 403 });
 }
 
-async function sendPrivateResult(subject: string, text: string): Promise<boolean> {
+type PrivateDelivery = 'dm' | 'mod_discussion' | 'failed';
+
+async function deliverPrivateResult(subject: string, text: string): Promise<PrivateDelivery> {
   const username = context.username;
-  if (!username) return false;
-  return sendPrivateMessage(username, subject, text);
+  if (!username) return deliverModDiscussion(subject, text);
+  return deliverPrivateMessage(username, subject, text);
 }
 
-async function sendPrivateMessage(username: string, subject: string, text: string): Promise<boolean> {
+async function deliverPrivateMessage(username: string, subject: string, text: string): Promise<PrivateDelivery> {
   try {
     await reddit.sendPrivateMessage({ to: username, subject, text });
-    return true;
+    return 'dm';
   } catch (error) {
     console.warn('[ModTrials] Private message failed', error);
-    return false;
+    return deliverModDiscussion(subject, text);
   }
+}
+
+async function deliverModDiscussion(subject: string, text: string): Promise<PrivateDelivery> {
+  const subredditId = context.subredditId;
+  if (!subredditId) return 'failed';
+
+  try {
+    await reddit.modMail.createModDiscussionConversation({
+      subredditId: subredditId as `t5_${string}`,
+      subject,
+      bodyMarkdown: text,
+    });
+    return 'mod_discussion';
+  } catch (error) {
+    console.warn('[ModTrials] Mod discussion delivery failed', error);
+    return 'failed';
+  }
+}
+
+function deliveryToast(delivery: PrivateDelivery, fallbackAction: string): string {
+  if (delivery === 'dm') return 'Private ModTrials result sent by DM.';
+  if (delivery === 'mod_discussion') return 'DM was blocked, so ModTrials sent the result to Mod Discussions.';
+  return `${fallbackAction}, but private delivery failed. Try "ModTrials: trial this" and review it in the dashboard.`;
 }
 
 async function removeCommandComment(commentId: string): Promise<void> {

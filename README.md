@@ -24,6 +24,7 @@ ModTrials then:
 - Shows the counterfactual outcome: what would have happened if the rule were live.
 - Records why the item matched.
 - Sends the moderator a private DM result.
+- Falls back to private Mod Discussions if Reddit blocks the DM.
 - Lets moderators mark examples as good catches, false positives, or gray-area cases.
 - Computes launch readiness from real trial evidence.
 - Shows a rule flight recorder and rule comparison view so teams can see which rules are safer to launch.
@@ -69,6 +70,7 @@ ModTrials is deterministic and privacy-preserving.
 - No full post/comment body stored in trial events.
 - No raw title or URL stored in trial events.
 - Private results are sent only to moderators.
+- If Reddit refuses a DM because of account delivery settings, ModTrials sends the result to the subreddit's private Mod Discussions instead.
 - Deleted Reddit items trigger cleanup of related trial evidence.
 - Redis keys are scoped by subreddit, so one community cannot read or mutate another community's ModTrials rules or evidence.
 
