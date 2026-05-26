@@ -70,6 +70,7 @@ ModTrials is deterministic and privacy-preserving.
 - No raw title or URL stored in trial events.
 - Private results are sent only to moderators.
 - Deleted Reddit items trigger cleanup of related trial evidence.
+- Redis keys are scoped by subreddit, so one community cannot read or mutate another community's ModTrials rules or evidence.
 
 Stored evidence keeps only the minimum needed for moderation review: rule ID, Reddit thing ID, match reasons, labels, timestamps, and launch metrics.
 
@@ -149,7 +150,7 @@ Current public test install:
 
 ```text
 r/ASIfacts
-modtrials v0.0.16
+modtrials v0.0.17
 ```
 
 ## App Listing

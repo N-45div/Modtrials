@@ -176,6 +176,8 @@ flowchart LR
 
 Stored trial events do not keep usernames, full bodies, titles, or raw URLs. This keeps ModTrials focused on rule safety rather than user profiling.
 
+Redis keys are namespaced with the current subreddit name. Rules, events, labels, and command de-duplication markers for one subreddit cannot be listed or changed from another subreddit installation.
+
 ## Permission Boundary
 
 ```mermaid
