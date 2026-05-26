@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.devvit/
+.env
+.env.*
+npm-debug.log*
+*.png
+*.jpg
+*.jpeg
+*.webp
+devvit.json.before-init-force

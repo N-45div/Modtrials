@@ -1,0 +1,148 @@
+{
+  "$schema": "https://developers.reddit.com/schema/config-file.v1.json",
+  "name": "modtrials",
+  "post": {
+    "dir": "dist/client",
+    "entrypoints": {
+      "default": {
+        "entry": "index.html",
+        "height": "tall"
+      }
+    }
+  },
+  "server": {
+    "dir": "dist/server",
+    "entry": "index.cjs"
+  },
+  "permissions": {
+    "redis": true,
+    "reddit": {
+      "enable": true,
+      "scope": "moderator"
+    }
+  },
+  "scripts": {
+    "dev": "vite build --watch",
+    "build": "vite build"
+  },
+  "triggers": {
+    "onPostSubmit": "/internal/triggers/on-post-submit",
+    "onCommentSubmit": "/internal/triggers/on-comment-submit",
+    "onCommentCreate": "/internal/triggers/on-comment-submit",
+    "onPostDelete": "/internal/triggers/on-post-delete",
+    "onCommentDelete": "/internal/triggers/on-comment-delete"
+  },
+  "scheduler": {
+    "tasks": {
+      "daily-rule-health": {
+        "endpoint": "/internal/scheduler/daily-rule-health",
+        "cron": "0 3 * * *"
+      }
+    }
+  },
+  "menu": {
+    "items": [
+      {
+        "label": "Open ModTrials",
+        "description": "Review rule trials and launch readiness",
+        "forUserType": "moderator",
+        "location": "subreddit",
+        "endpoint": "/internal/menu/open-dashboard"
+      },
+      {
+        "label": "ModTrials: trial this",
+        "description": "Create a shadow trial from this Reddit item",
+        "forUserType": "moderator",
+        "location": "post",
+        "endpoint": "/internal/menu/trial-from-post"
+      },
+      {
+        "label": "ModTrials: trial privately",
+        "description": "Create a private shadow trial and DM the result",
+        "forUserType": "moderator",
+        "location": "post",
+        "endpoint": "/internal/menu/trial-private"
+      },
+      {
+        "label": "ModTrials: why privately",
+        "description": "DM why this item matched ModTrials",
+        "forUserType": "moderator",
+        "location": "post",
+        "endpoint": "/internal/menu/why-private"
+      },
+      {
+        "label": "ModTrials: trial this",
+        "description": "Create a shadow trial from this Reddit comment",
+        "forUserType": "moderator",
+        "location": "comment",
+        "endpoint": "/internal/menu/trial-from-post"
+      },
+      {
+        "label": "ModTrials: trial privately",
+        "description": "Create a private shadow trial and DM the result",
+        "forUserType": "moderator",
+        "location": "comment",
+        "endpoint": "/internal/menu/trial-private"
+      },
+      {
+        "label": "ModTrials: why privately",
+        "description": "DM why this comment matched ModTrials",
+        "forUserType": "moderator",
+        "location": "comment",
+        "endpoint": "/internal/menu/why-private"
+      },
+      {
+        "label": "ModTrials: private report",
+        "description": "DM aggregate readiness and privacy status",
+        "forUserType": "moderator",
+        "location": "subreddit",
+        "endpoint": "/internal/menu/report-private"
+      },
+      {
+        "label": "Good ModTrials catch",
+        "description": "Mark the latest trial event for this item as useful",
+        "forUserType": "moderator",
+        "location": "post",
+        "endpoint": "/internal/menu/good-catch"
+      },
+      {
+        "label": "Good ModTrials catch",
+        "description": "Mark the latest trial event for this comment as useful",
+        "forUserType": "moderator",
+        "location": "comment",
+        "endpoint": "/internal/menu/good-catch"
+      },
+      {
+        "label": "False positive in ModTrials",
+        "description": "Mark the latest trial event for this item as too broad",
+        "forUserType": "moderator",
+        "location": "post",
+        "endpoint": "/internal/menu/false-positive"
+      },
+      {
+        "label": "False positive in ModTrials",
+        "description": "Mark the latest trial event for this comment as too broad",
+        "forUserType": "moderator",
+        "location": "comment",
+        "endpoint": "/internal/menu/false-positive"
+      },
+      {
+        "label": "Too subjective for ModTrials",
+        "description": "Mark the latest trial event for this item as gray-area",
+        "forUserType": "moderator",
+        "location": "post",
+        "endpoint": "/internal/menu/too-gray"
+      },
+      {
+        "label": "Too subjective for ModTrials",
+        "description": "Mark the latest trial event for this comment as gray-area",
+        "forUserType": "moderator",
+        "location": "comment",
+        "endpoint": "/internal/menu/too-gray"
+      }
+    ]
+  },
+  "dev": {
+    "subreddit": "modtrials_dev"
+  }
+}
