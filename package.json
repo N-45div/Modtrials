@@ -16,9 +16,9 @@
     "preview": "vite preview --host 0.0.0.0"
   },
   "dependencies": {
-    "@devvit/redis": "^0.12.24",
-    "@devvit/start": "^0.12.24",
-    "@devvit/web": "^0.12.24",
+    "@devvit/redis": "^0.13.0",
+    "@devvit/start": "^0.13.0",
+    "@devvit/web": "^0.13.0",
     "@hono/node-server": "^2.0.2",
     "@vitejs/plugin-react": "^5.0.0",
     "hono": "^4.7.11",
@@ -33,7 +33,7 @@
     "@types/node": "^22.15.21",
     "@types/react": "^19.0.12",
     "@types/react-dom": "^19.0.4",
-    "devvit": "^0.12.24",
+    "devvit": "^0.13.0",
     "eslint": "^9.27.0",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.59.3",
